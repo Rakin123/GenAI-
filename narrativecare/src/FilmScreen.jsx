@@ -69,7 +69,7 @@ export default function FilmScreen({ data = TEST_DATA }) {
                 style={{ opacity: storyComplete ? 1 : 0 }}
             >
                 <span
-                    className="text-zinc-300 text-xs tracking-widest uppercase"
+                    className="text-zinc-300 text-lg tracking-widest uppercase"
                     style={{ textShadow: "0 0 20px rgba(168,85,247,0.6)" }}
                 >
                     {data.insight_tag}
