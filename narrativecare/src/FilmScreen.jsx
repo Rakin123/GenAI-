@@ -13,58 +13,66 @@ const TEST_DATA = {
     ],
     audio_duration_ms: 32000,
     insight_tag: "belonging",
-    // Placeholder audio — replaced with real base64 audio in Hour 5
     audio_src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
 }
 
-export default function FilmScreen() {
+export default function FilmScreen({ data = TEST_DATA }) {
     const [storyComplete, setStoryComplete] = useState(false)
     const [started, setStarted] = useState(false)
     const audioRef = useRef(null)
 
-    // On mount — start everything simultaneously
     useEffect(() => {
         const audio = audioRef.current
         if (!audio) return
-
-        // Small timeout to ensure video element is ready
         const timer = setTimeout(() => {
             audio.play().catch((e) => console.log("Audio play failed:", e))
             setStarted(true)
         }, 100)
-
         return () => clearTimeout(timer)
     }, [])
 
     return (
         <div className="relative w-full h-screen bg-black overflow-hidden">
-            {/* Hidden audio element */}
-            <audio ref={audioRef} src={TEST_DATA.audio_src} />
+            {/* Audio */}
+            <audio ref={audioRef} src={data.audio_src} />
 
-            {/* Video fills screen */}
-            <VideoSequencer clips={TEST_DATA.video_urls} />
+            {/* Video */}
+            <VideoSequencer clips={data.video_urls} />
 
             {/* Dark overlay */}
             <div className="absolute inset-0 bg-black/40" />
 
-            {/* Word by word text reveal — only starts when audio starts */}
+            {/* Grain texture overlay */}
+            <div
+                className="absolute inset-0 opacity-20 pointer-events-none"
+                style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+                    backgroundRepeat: "repeat",
+                    backgroundSize: "128px 128px",
+                }}
+            />
+
+            {/* Word reveal */}
             <div className="absolute inset-0 flex items-center justify-center">
                 {started && (
                     <WordReveal
-                        text={TEST_DATA.fable}
-                        audioDurationMs={TEST_DATA.audio_duration_ms}
+                        text={data.fable}
+                        audioDurationMs={data.audio_duration_ms}
                         onComplete={() => setStoryComplete(true)}
                     />
                 )}
             </div>
 
-            {/* Insight tag — fades in after story completes */}
+            {/* Insight tag */}
             <div
                 className="absolute bottom-8 w-full text-center transition-opacity duration-1000"
                 style={{ opacity: storyComplete ? 1 : 0 }}
             >
-                <span className="text-zinc-400 text-sm tracking-widest uppercase">
-                    {TEST_DATA.insight_tag}
+                <span
+                    className="text-zinc-300 text-xs tracking-widest uppercase"
+                    style={{ textShadow: "0 0 20px rgba(168,85,247,0.6)" }}
+                >
+                    {data.insight_tag}
                 </span>
             </div>
         </div>
