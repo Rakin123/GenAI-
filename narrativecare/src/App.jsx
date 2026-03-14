@@ -1,5 +1,6 @@
 import { useState } from "react"
 import LoadingScreen from "./LoadingScreen"
+import FilmScreen from "./FilmScreen"
 
 function App() {
   const [screen, setScreen] = useState("input")
@@ -8,9 +9,12 @@ function App() {
   function handleSubmit() {
     if (input.trim() === "") return
     setScreen("loading")
+    // Simulate 75s loading then go to film — remove this in Hour 5
+    setTimeout(() => setScreen("film"), 5000)
   }
 
   if (screen === "loading") return <LoadingScreen />
+  if (screen === "film") return <FilmScreen />
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center px-4">
