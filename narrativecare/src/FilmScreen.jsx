@@ -16,10 +16,27 @@ const TEST_DATA = {
     audio_src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
 }
 
-export default function FilmScreen({ data = TEST_DATA }) {
+function getAudioSrc(data) {
+    // If real backend data has base64 audio, convert it to a usable URL
+    if (data.audio_b64) {
+        const binary = atob(data.audio_b64)
+        const bytes = new Uint8Array(binary.length)
+        for (let i = 0; i < binary.length; i++) {
+            bytes[i] = binary.charCodeAt(i)
+        }
+        const blob = new Blob([bytes], { type: "audio/mpeg" })
+        return URL.createObjectURL(blob)
+    }
+    // Fall back to test audio
+    return data.audio_src || TEST_DATA.audio_src
+}
+
+export default function FilmScreen({ data }) {
+    const filmData = data || TEST_DATA
     const [storyComplete, setStoryComplete] = useState(false)
     const [started, setStarted] = useState(false)
     const audioRef = useRef(null)
+    const audioSrc = getAudioSrc(filmData)
 
     useEffect(() => {
         const audio = audioRef.current
@@ -33,16 +50,11 @@ export default function FilmScreen({ data = TEST_DATA }) {
 
     return (
         <div className="relative w-full h-screen bg-black overflow-hidden">
-            {/* Audio */}
-            <audio ref={audioRef} src={data.audio_src} />
+            <audio ref={audioRef} src={audioSrc} />
+            <VideoSequencer clips={filmData.video_urls} />
 
-            {/* Video */}
-            <VideoSequencer clips={data.video_urls} />
-
-            {/* Dark overlay */}
             <div className="absolute inset-0 bg-black/40" />
 
-            {/* Grain texture overlay */}
             <div
                 className="absolute inset-0 opacity-20 pointer-events-none"
                 style={{
@@ -52,18 +64,16 @@ export default function FilmScreen({ data = TEST_DATA }) {
                 }}
             />
 
-            {/* Word reveal */}
             <div className="absolute inset-0 flex items-center justify-center">
                 {started && (
                     <WordReveal
-                        text={data.fable}
-                        audioDurationMs={data.audio_duration_ms}
+                        text={filmData.fable}
+                        audioDurationMs={filmData.audio_duration_ms}
                         onComplete={() => setStoryComplete(true)}
                     />
                 )}
             </div>
 
-            {/* Insight tag */}
             <div
                 className="absolute bottom-8 w-full text-center transition-opacity duration-1000"
                 style={{ opacity: storyComplete ? 1 : 0 }}
@@ -72,7 +82,7 @@ export default function FilmScreen({ data = TEST_DATA }) {
                     className="text-zinc-300 text-lg tracking-widest uppercase"
                     style={{ textShadow: "0 0 20px rgba(168,85,247,0.6)" }}
                 >
-                    {data.insight_tag}
+                    {filmData.insight_tag}
                 </span>
             </div>
         </div>

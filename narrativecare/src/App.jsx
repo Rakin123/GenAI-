@@ -72,7 +72,9 @@ function MainFlow() {
     return () => clearTimeout(timer)
   }, [currentStage, screen])
 
-  function handleSubmit() {
+  const [filmData, setFilmData] = useState(null)
+
+  async function handleSubmit() {
     if (input.trim() === "") {
       setError("Please share what's on your mind first.")
       return
@@ -83,15 +85,32 @@ function MainFlow() {
     }
     setError("")
     setInputVisible(false)
+
     setTimeout(() => {
       setScreen("loading")
       setTimeout(() => setLoadingVisible(true), 100)
     }, 1000)
-    // Move to film screen after 75 seconds
-    setTimeout(() => setScreen("film"), 75000)
-  }
 
-  if (screen === "film") return <FilmScreen />
+    // Run fetch and minimum wait time simultaneously
+    // Only go to film screen when BOTH are done
+    const minimumWait = new Promise((resolve) => setTimeout(resolve, 75000))
+
+    const fetchData = fetch("/api/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_input: input }),
+    })
+      .then((res) => res.json())
+      .catch((err) => {
+        console.error("Backend error:", err)
+        return null
+      })
+
+    const [data] = await Promise.all([fetchData, minimumWait])
+    setFilmData(data)
+    setScreen("film")
+  }
+  if (screen === "film") return <FilmScreen data={filmData} />
 
   return (
     <div
